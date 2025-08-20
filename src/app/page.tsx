@@ -1,95 +1,95 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: "assistant", content: "Hi! I can create, list, and complete your tasks. Try: 'Add buy milk', 'List tasks', or 'Complete task <id>'" },
+  ]);
+  const [input, setInput] = useState("");
+  const [pending, setPending] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  async function send() {
+    if (!input.trim() || pending) return;
+    const nextMessages = [...messages, { role: "user" as const, content: input }];
+    setMessages(nextMessages);
+    setInput("");
+    setPending(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessages((prev) => [...prev, { role: "assistant", content: data?.error || "Server error" }]);
+        return;
+      }
+      setMessages((prev) => [...prev, { role: "assistant", content: data.content ?? "" }]);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong." }]);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      void send();
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: 800, margin: "0 auto", padding: 16 }}>
+      <div style={{ flex: 1, overflow: "auto", border: "1px solid #e5e7eb", borderRadius: 8, padding: 16, background: "#fff" }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 12,
+            alignItems: "flex-start",
+          }}>
+            <div style={{
+              fontWeight: 600,
+              width: 90,
+              color: m.role === "assistant" ? "#2563eb" : "#111827",
+              textTransform: "capitalize",
+            }}>{m.role}</div>
+            <div style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder={pending ? "Thinking..." : "Type a message"}
+          disabled={pending}
+          style={{
+            flex: 1,
+            border: "1px solid #d1d5db",
+            borderRadius: 8,
+            padding: "10px 12px",
+          }}
+        />
+        <button onClick={() => void send()} disabled={pending} style={{
+          padding: "10px 16px",
+          borderRadius: 8,
+          background: pending ? "#9ca3af" : "#2563eb",
+          color: "white",
+        }}>Send</button>
+      </div>
+      <p style={{ marginTop: 8, color: "#6b7280" }}>Set your `OPENAI_API_KEY` in `.env.local` and restart the dev server.</p>
     </div>
   );
 }
