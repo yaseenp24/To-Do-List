@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chores • Todo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Chores</h1>
+
+      <form id="add-form" action="{{ url_for('add_task') }}" method="post" class="add-form">
+        <input
+          type="text"
+          name="title"
+          id="title"
+          placeholder="Add a new chore..."
+          autocomplete="off"
+          required
+        />
+        <button type="submit">Add</button>
+      </form>
+
+      <ul id="task-list" class="task-list">
+        {% for task in tasks %}
+        <li class="task" data-id="{{ task['id'] }}" data-completed="{{ 1 if task['completed'] else 0 }}">
+          <label>
+            <input type="checkbox" class="toggle" {% if task['completed'] %}checked{% endif %} />
+            <span class="title">{{ task['title'] }}</span>
+          </label>
+          <button class="delete" aria-label="Delete">✕</button>
+        </li>
+        {% else %}
+        <li class="empty">No chores yet. Add one above!</li>
+        {% endfor %}
+      </ul>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+  </html>
+
+
