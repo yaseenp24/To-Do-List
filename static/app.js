@@ -42,18 +42,29 @@ async function postJSON(url, body) {
 window.addEventListener('DOMContentLoaded', () => {
   const form = $('#add-form');
   const list = $('#task-list');
+  const titleInput = $('#chore-title');
+  const dateInput = $('#chore-date');
+  const timeInput = $('#chore-time');
 
   form.addEventListener('submit', async (e) => {
-    const input = $('#title');
-    if (!input.value.trim()) return;
+    if (!titleInput.value.trim()) return;
     e.preventDefault();
+    // Compose display title: title + optional date/time in parentheses
+    let composed = titleInput.value.trim();
+    const dateStr = dateInput.value ? new Date(dateInput.value).toLocaleDateString() : '';
+    const timeStr = timeInput.value || '';
+    if (dateStr || timeStr) {
+      composed += ' ' + ['(', [dateStr, timeStr].filter(Boolean).join(' '), ')'].join('');
+    }
     try {
-      const data = await postJSON(form.action, { title: input.value.trim() });
+      const data = await postJSON(form.action, { title: composed });
       const empty = list.querySelector('.empty');
       if (empty) empty.remove();
       const item = createTaskElement(data);
       list.prepend(item);
-      input.value = '';
+      titleInput.value = '';
+      dateInput.value = '';
+      timeInput.value = '';
     } catch (err) {
       console.error(err);
     }

@@ -43,7 +43,9 @@ h1 {
   margin-bottom: 16px;
 }
 
-.add-form input[type="text"] {
+.add-form input[type="text"],
+.add-form input[type="date"],
+.add-form input[type="time"] {
   flex: 1;
   padding: 12px 14px;
   border-radius: 10px;
