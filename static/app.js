@@ -7,7 +7,7 @@ function createTaskElement(task) {
   li.className = 'task';
   li.dataset.id = task.id;
   li.dataset.completed = String(task.completed ? 1 : 0);
-
+ 
   const label = document.createElement('label');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
