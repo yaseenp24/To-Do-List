@@ -99,7 +99,7 @@ def api_tasks():
 
 @app.post("/add")
 def add_task():
-    title = None
+    title = None 
     if request.is_json:
         data = request.get_json(silent=True) or {}
         title = (data.get("title") or "").strip()
