@@ -5,7 +5,7 @@ function $(selector, root = document) {
 function createTaskElement(task) {
   const li = document.createElement('li');
   li.className = 'task';
-  li.dataset.id = task.id;
+  li.dataset.id = task.id; 
   li.dataset.completed = String(task.completed ? 1 : 0);
  
   const label = document.createElement('label');
